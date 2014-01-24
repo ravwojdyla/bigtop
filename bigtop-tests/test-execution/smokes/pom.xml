@@ -169,6 +169,12 @@
         <version>${luigi-smoke.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.apache.bigtop.itest</groupId>
+        <artifactId>httpfs-smoke</artifactId>
+        <version>${httpfs-smoke.version}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
