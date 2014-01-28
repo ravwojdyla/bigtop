@@ -50,6 +50,7 @@
     <solr-smoke.version>${project.version}</solr-smoke.version>
     <hcatalog-smoke.version>${project.version}</hcatalog-smoke.version>
     <phoenix-smoke.version>${project.version}</phoenix-smoke.version>
+    <luigi-smoke.version>${project.version}</luigi-smoke.version>
   </properties>
 
   <!--
@@ -69,7 +70,9 @@
     <module>httpfs</module>
     <module>flume</module>
     <module>sqoop</module>
+    <module>luigi</module>
     -->
+
     <module>hcatalog</module>
     <module>phoenix</module>
   </modules>
@@ -159,6 +162,11 @@
         <groupId>org.apache.bigtop.itest</groupId>
         <artifactId>httpfs-smoke</artifactId>
         <version>${httpfs-smoke.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <artifactId>luigi-smoke</artifactId>
+        <version>${luigi-smoke.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

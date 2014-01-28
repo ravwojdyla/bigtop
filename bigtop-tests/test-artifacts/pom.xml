@@ -52,6 +52,7 @@
     <module>hcatalog</module>
     <module>spark</module>
     <module>phoenix</module>
+    <module>luigi</module>
   </modules>
 
   <dependencies>
