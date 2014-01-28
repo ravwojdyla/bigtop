@@ -31,7 +31,6 @@
   <version>0.8.0-SNAPSHOT</version>
   <name>bigtop-smokes</name>
 
-
   <modules>
     <module>hadoop</module>
     <module>package</module>
@@ -53,6 +52,7 @@
     <module>spark</module>
     <module>phoenix</module>
     <module>luigi</module>
+    <module>snakebite</module>
   </modules>
 
   <dependencies>

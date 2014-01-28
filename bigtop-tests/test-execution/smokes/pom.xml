@@ -51,6 +51,7 @@
     <hcatalog-smoke.version>${project.version}</hcatalog-smoke.version>
     <phoenix-smoke.version>${project.version}</phoenix-smoke.version>
     <luigi-smoke.version>${project.version}</luigi-smoke.version>
+    <snakebite-smoke.version>${project.version}</snakebite-smoke.version>
   </properties>
 
   <!--
@@ -71,6 +72,7 @@
     <module>flume</module>
     <module>sqoop</module>
     <module>luigi</module>
+    <module>snakebite</module>
     -->
 
     <module>hcatalog</module>
@@ -171,8 +173,8 @@
       </dependency>
       <dependency>
         <groupId>org.apache.bigtop.itest</groupId>
-        <artifactId>httpfs-smoke</artifactId>
-        <version>${httpfs-smoke.version}</version>
+        <artifactId>snakebite-smoke</artifactId>
+        <version>${snakebite-smoke.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
