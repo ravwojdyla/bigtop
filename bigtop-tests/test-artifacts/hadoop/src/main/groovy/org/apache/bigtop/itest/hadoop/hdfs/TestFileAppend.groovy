@@ -42,10 +42,14 @@ public class TestFileAppend {
   @BeforeClass
   public static void setUp() {
     conf = new Configuration();
-    namenode = conf.get("fs.defaultFS");
-    if (namenode == null) {
-      namenode = conf.get("fs.default.name");
+    String defaultFs = conf.get("fs.defaultFS");
+    if (defaultFs == null) {
+      defaultFs = conf.get("fs.default.name");
     }
+
+    // removing a trailing slash (it might be the case of NN-HA)
+    namenode = (defaultFs[-1] == '/' ? defaultFs[0..-2] : defaultFs);
+
     assertTrue("Could not find namenode", namenode != null);
 
     // creating test directory and test files

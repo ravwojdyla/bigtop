@@ -45,7 +45,10 @@ class TestHadoopSmoke {
   }
   static final String STREAMING_JAR = STREAMING_HOME + "/" + streaming_jar;
   static String testDir = "test.hadoopsmoke." + (new Date().getTime())
-  static String nn = (new Configuration()).get(DFSConfigKeys.FS_DEFAULT_NAME_KEY)
+
+  static String defaultFs = (new Configuration()).get(DFSConfigKeys.FS_DEFAULT_NAME_KEY)
+  // removing a trailing slash (it might be the case of NN-HA)
+  static String nn = (defaultFs[-1] == '/' ? defaultFs[0..-2] : defaultFs)
 
   String cmd = "hadoop jar ${STREAMING_JAR}" +
       " -D mapred.map.tasks=1 -D mapred.reduce.tasks=1 -D mapred.job.name=Experiment"
@@ -69,7 +72,7 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -cacheArchive ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-00000")
+    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-*-00000")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
@@ -80,7 +83,7 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -archives ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-00000")
+    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-*-00000")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))

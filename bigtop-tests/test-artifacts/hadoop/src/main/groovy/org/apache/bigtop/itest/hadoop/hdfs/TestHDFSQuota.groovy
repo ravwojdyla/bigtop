@@ -70,6 +70,15 @@ public class TestHDFSQuota {
 
   @Test
   public void testNewlyCreatedDir() { 
+    // re-create a dir in case if was used by other tests
+    shHDFS.exec("hadoop fs -test -e $testQuotaFolder1");
+    if (shHDFS.getRet() == 0) {
+      shHDFS.exec("hadoop fs -rmr -skipTrash $testQuotaFolder1");
+      assertTrue("Deletion of previous testQuotaFolder1 from HDFS failed",
+          shHDFS.getRet() == 0);
+      shHDFS.exec("hadoop fs -mkdir $testQuotaFolder1");
+      assertTrue("Could not create input directory", shHDFS.getRet() == 0);
+    }
     // newly created dir should have no name quota, no space quota   
     shHDFS.exec("hadoop fs -count -q $testQuotaFolder1");
     assertTrue("Could not use count command", shHDFS.getRet() == 0);
@@ -162,6 +171,8 @@ public class TestHDFSQuota {
     // quota can be set even if it violates
     shHDFS.exec("hadoop dfsadmin -setQuota $LARGE $testQuotaFolder1");
     assertTrue("Could not setQuota", shHDFS.getRet() == 0);
+    shHDFS.exec("hadoop dfsadmin -setSpaceQuota $LARGE $testQuotaFolder1");
+    assertTrue("Could not setSpaceQuota", shHDFS.getRet() == 0);
     shHDFS.exec("hadoop fs -put - $testQuotaFolder1" + "/testString1", "-------TEST STRING--------"); 
     assertTrue("Could not use put command", shHDFS.getRet() == 0);
     shHDFS.exec("hadoop fs -mkdir $testQuotaFolder1" + "/sample1");
@@ -174,8 +185,8 @@ public class TestHDFSQuota {
     assertTrue("setSpaceQuota should have worked", shHDFS.getRet() == 0);
     //testQuotas
     // dir creation should fail - name quota
-    shHDFS.exec("hadoop dfsadmin -setSpaceQuota 10000000000 $testQuotaFolder1");
-    assertTrue("Could not setSpaceQuota", shHDFS.getRet() == 0);
+    shHDFS.exec("hadoop dfsadmin -setQuota 1 $testQuotaFolder1");
+    assertTrue("Could not setQuota", shHDFS.getRet() == 0);
     shHDFS.exec("hadoop fs -mkdir $testQuotaFolder1" + "/sample3");
     assertTrue("mkdir should not have worked", shHDFS.getRet() != 0);
 

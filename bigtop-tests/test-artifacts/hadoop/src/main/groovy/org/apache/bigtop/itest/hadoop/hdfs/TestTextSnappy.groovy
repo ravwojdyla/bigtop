@@ -32,7 +32,7 @@ class TestTextSnappy {
   @BeforeClass
   static void  setUp() throws IOException {
     sh.exec(
-    "hadoop fs  -mkdir ${testDir}",
+    "hadoop fs -mkdir ${testDir}",
     "hadoop fs -put ${snappyFile} ${testDir}/${snappyFile}",
     )
     logError(sh)
