@@ -72,7 +72,7 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -cacheArchive ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -text ${testDir}/cachefile/out/part*00000*")
+    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-*-00000")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
@@ -83,7 +83,7 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -archives ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -text ${testDir}/cachefile/out/part*00000*")
+    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-*-00000")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
