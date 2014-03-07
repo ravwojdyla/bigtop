@@ -46,7 +46,6 @@ public class TestHttpFs {
     private static String testHttpFsFolder =  "/tmp/httpfssmoke-" + (new Date().getTime());
     private static String testHttpFsFolderRenamed = "$testHttpFsFolder-renamed";
     
-    private static Shell shHDFS = new Shell("/bin/bash", USERNAME);
     private static Shell sh = new Shell("/bin/bash");
 
     @BeforeClass
@@ -56,17 +55,17 @@ public class TestHttpFs {
     @AfterClass
     public static void tearDown() {
         // clean up of existing folders
-        shHDFS.exec("hadoop fs -test -e $testHttpFsFolder");
-        if (shHDFS.getRet() == 0) {
-            shHDFS.exec("hadoop fs -rmr -skipTrash $testHttpFsFolder");
+        sh.exec("hadoop fs -test -e $testHttpFsFolder");
+        if (sh.getRet() == 0) {
+            sh.exec("hadoop fs -rmr -skipTrash $testHttpFsFolder");
             assertTrue("Deletion of previous testHttpFsFolder from HDFS failed",
-                shHDFS.getRet() == 0);
+                sh.getRet() == 0);
         }
-        shHDFS.exec("hadoop fs -test -e $testHttpFsFolderRenamed");
-        if (shHDFS.getRet() == 0) {
-            shHDFS.exec("hadoop fs -rmr -skipTrash $testHttpFsFolderRenamed");
+        sh.exec("hadoop fs -test -e $testHttpFsFolderRenamed");
+        if (sh.getRet() == 0) {
+            sh.exec("hadoop fs -rmr -skipTrash $testHttpFsFolderRenamed");
             assertTrue("Deletion of previous testHttpFsFolderRenamed from HDFS failed",
-                shHDFS.getRet() == 0);
+                sh.getRet() == 0);
         }
     }
 
@@ -97,7 +96,7 @@ public class TestHttpFs {
         assertTrue("curl command to create a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=RENAME&destination=$testHttpFsFolderRenamed'");
-        assertTrue("curl command to rename a dir failed", shHDFS.getRet() == 0);
+        assertTrue("curl command to rename a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
     }
 
@@ -107,7 +106,7 @@ public class TestHttpFs {
         assertTrue("curl command to create a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i -X DELETE '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=DELETE'");
-        assertTrue("curl command to delete a dir failed", shHDFS.getRet() == 0);
+        assertTrue("curl command to delete a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
     }
     
@@ -130,7 +129,7 @@ public class TestHttpFs {
         createDir(testHttpFsFolder);
         assertTrue("curl command to create a dir failed", sh.getRet() == 0);
         sh.exec("curl -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder/$filename?user.name=$USERNAME&op=CREATE'");
-        assertTrue("curl command to create a file failed", shHDFS.getRet() == 0);
+        assertTrue("curl command to create a file failed", sh.getRet() == 0);
         String datanodeLocation = null;
         sh.getOut().each {
             if (it.startsWith("Location:")) {
@@ -141,12 +140,11 @@ public class TestHttpFs {
         LOG.debug("Datanode location: $datanodeLocation");
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i -T $DATA_DIR/$filename '$datanodeLocation' --header 'Content-Type:application/octet-stream'");
-        assertTrue("curl command to create a file failed", shHDFS.getRet() == 0);
+        assertTrue("curl command to create a file failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i -L '$HTTPFS_PREFIX$testHttpFsFolder/$filename?user.name=$USERNAME&op=OPEN'");
-        assertTrue("curl command to create a file failed", shHDFS.getRet() == 0);
+        assertTrue("curl command to create a file failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         assertValueExists(sh.getOut(), filenameContent);
     }
 }
-
