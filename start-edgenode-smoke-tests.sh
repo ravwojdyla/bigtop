@@ -2,7 +2,7 @@
 
 export HADOOP_CONF_DIR=/etc/hadoop/conf
 export HADOOP_HOME=/usr/lib/hadoop
-export HTTPFS_PROXY=master2.hdfsha.cloud.spotify.net:14000
+export HTTPFS_PROXY=flume-edge-collector-001.lon.spotify.net:14443
 export LUIGI_CONF_DIR=/etc/luigi/
 export HIVE_HOME=/usr/lib/hive
 export HADOOP_MAPRED_HOME=/usr/lib/hadoop-mapreduce/
@@ -33,7 +33,7 @@ do
         # hdfs
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestTextSnappy*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHDFSQuota*' -f $EXECUTION_POM_FILE
-        mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestNameNodeHA*' -f $EXECUTION_POM_FILE
+        # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestNameNodeHA*' -f $EXECUTION_POM_FILE
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHDFSBalancer*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestDFSAdmin*' -f $EXECUTION_POM_FILE
         # mapreduce
@@ -43,8 +43,9 @@ do
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestNode*' -f $EXECUTION_POM_FILE
     # sqoop
     elif [ "$PROJECT" == "sqoop" ]; then
-        mvn3 clean verify -D$LOG4J_LEVEL -D'db.tblname=TBLS' -D'db.dbname=meta_db' -D'db.host=hive.hdfsha.cloud.spotify.net' -D'org.apache.maven-failsafe-plugin.testInclude=**/TestSqoopImportPostgres*' -f $EXECUTION_POM_FILE
+        # mvn3 clean verify -D$LOG4J_LEVEL -D'db.tblname=TBLS' -D'db.dbname=meta_db' -D'db.host=hive.hdfsha.cloud.spotify.net' -D'org.apache.maven-failsafe-plugin.testInclude=**/TestSqoopImportPostgres*' -f $EXECUTION_POM_FILE
     # snakebite, luigi, httpfs
+	echo "Sqoop smoke tests are currently disabled"
     elif [ "$PROJECT" == "snakebite" ] || [ "$PROJECT" == "luigi" ] || [ "$PROJECT" == "httpfs" ] ; then
         mvn3 clean verify -D$LOG4J_LEVEL -f $EXECUTION_POM_FILE
     fi
