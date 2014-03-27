@@ -15,16 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.bigtop.itest.hadoop.hdfs
+package org.apache.bigtop.itest.httpfs
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.apache.bigtop.itest.shell.Shell;
-import org.apache.bigtop.itest.TestUtils
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 
@@ -38,7 +36,7 @@ public class TestHttpFs {
             HTTPFS_PROXY);
     }
   
-    private static final String HTTPFS_PREFIX = "http://$HTTPFS_PROXY/webhdfs/v1";
+    private static final String HTTPFS_PREFIX = "$HTTPFS_PROXY/webhdfs/v1";
     private static final String HTTPFS_SUCCESS = "{\"boolean\":true}";
     
     private static final String DATA_DIR = System.getProperty("data.dir", "text-files");
@@ -47,6 +45,8 @@ public class TestHttpFs {
     private static String testHttpFsFolderRenamed = "$testHttpFsFolder-renamed";
     
     private static Shell sh = new Shell("/bin/bash");
+    // it will used to cleanup directories, as they are created with via curl with user.name=$USERNAME
+    private static Shell shUSERNAME = new Shell("/bin/bash", USERNAME);
 
     @BeforeClass
     public static void setUp() {
@@ -54,70 +54,74 @@ public class TestHttpFs {
 
     @AfterClass
     public static void tearDown() {
-        // clean up of existing folders
-        sh.exec("hadoop fs -test -e $testHttpFsFolder");
-        if (sh.getRet() == 0) {
-            sh.exec("hadoop fs -rmr -skipTrash $testHttpFsFolder");
+        // clean up of existing folders using USERNAME of user who created them via curl
+        shUSERNAME.exec("hadoop fs -test -d $testHttpFsFolder");
+        if (shUSERNAME.getRet() == 0) {
+            shUSERNAME.exec("hadoop fs -rmr -skipTrash $testHttpFsFolder");
             assertTrue("Deletion of previous testHttpFsFolder from HDFS failed",
-                sh.getRet() == 0);
+                shUSERNAME.getRet() == 0);
         }
-        sh.exec("hadoop fs -test -e $testHttpFsFolderRenamed");
-        if (sh.getRet() == 0) {
-            sh.exec("hadoop fs -rmr -skipTrash $testHttpFsFolderRenamed");
+        shUSERNAME.exec("hadoop fs -test -d $testHttpFsFolderRenamed");
+        if (shUSERNAME.getRet() == 0) {
+            shUSERNAME.exec("hadoop fs -rmr -skipTrash $testHttpFsFolderRenamed");
             assertTrue("Deletion of previous testHttpFsFolderRenamed from HDFS failed",
-                sh.getRet() == 0);
+                shUSERNAME.getRet() == 0);
         }
     }
 
     public void assertValueExists(List<String> values, String expected) {
         boolean exists = false;
         for (String value: values) {
-            if (expected.startsWith(value)) {
+            if (value.contains(expected)) {
                 exists = true;
             }
         }
-        assertTrue(expected + " NOT found!", exists == true);
+        assertTrue(expected + " NOT found!", exists);
     }
     
     private void createDir(String dirname) {
-        sh.exec("curl -i -X PUT '$HTTPFS_PREFIX$dirname?user.name=$USERNAME&op=MKDIRS'");
+        sh.exec("curl -d '' -i -X PUT '$HTTPFS_PREFIX$dirname?user.name=$USERNAME&op=MKDIRS'");
+        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
+        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        sh.exec("hadoop fs -test -d $dirname");
+	assertTrue("a directory $dirname does not exist", sh.getRet() == 0);
     }
 
     @Test
     public void testCreateDir() {
         createDir(testHttpFsFolder)
-        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
     }
 
     @Test
     public void testRenameDir() { 
         createDir(testHttpFsFolder);
-        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
-        sh.exec("curl -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=RENAME&destination=$testHttpFsFolderRenamed'");
+        sh.exec("curl -d '' -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=RENAME&destination=$testHttpFsFolderRenamed'");
+
+	// check if a directory was successfully renamed
         assertTrue("curl command to rename a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        sh.exec("hadoop fs -test -d $testHttpFsFolderRenamed");
+	assertTrue("a directory $testHttpFsFolderRenamed does not exist", sh.getRet() == 0);
     }
 
     @Test
     public void testDeleteDir() {
         createDir(testHttpFsFolder);
-        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i -X DELETE '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=DELETE'");
+
+	// check if a directory was successfuly removed
         assertTrue("curl command to delete a dir failed", sh.getRet() == 0);
         assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        sh.exec("hadoop fs -test -d $testHttpFsFolder");
+	assertTrue("a directory $testHttpFsFolder still exists", sh.getRet() != 0);
     }
     
     @Test
     public void testStatusDir() { 
         createDir(testHttpFsFolder);
-        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
         sh.exec("curl -i '$HTTPFS_PREFIX$testHttpFsFolder?user.name=$USERNAME&op=GETFILESTATUS'");
         assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        assertValueExists(sh.getOut(), "FileStatus");
         assertValueExists(sh.getOut(), "DIRECTORY");
     }
 
@@ -127,9 +131,8 @@ public class TestHttpFs {
         String filenameContent = 'Hello World!';
         
         createDir(testHttpFsFolder);
-        assertTrue("curl command to create a dir failed", sh.getRet() == 0);
-        sh.exec("curl -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder/$filename?user.name=$USERNAME&op=CREATE'");
-        assertTrue("curl command to create a file failed", sh.getRet() == 0);
+        sh.exec("curl -d '' -i -X PUT '$HTTPFS_PREFIX$testHttpFsFolder/$filename?user.name=$USERNAME&op=CREATE'");
+        assertTrue("curl command to create a file failed with CREATE command", sh.getRet() == 0);
         String datanodeLocation = null;
         sh.getOut().each {
             if (it.startsWith("Location:")) {
@@ -138,13 +141,16 @@ public class TestHttpFs {
             }
         }
         LOG.debug("Datanode location: $datanodeLocation");
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
-        sh.exec("curl -i -T $DATA_DIR/$filename '$datanodeLocation' --header 'Content-Type:application/octet-stream'");
-        assertTrue("curl command to create a file failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        sh.exec("curl -i -X PUT -T $DATA_DIR/$filename '$datanodeLocation' --header 'Content-Type:application/octet-stream'");
+
+	// check if the file was created
+        assertTrue("curl command to create a file failed when sending data to $datanodeLocation", sh.getRet() == 0);
+        sh.exec("hadoop fs -test -e $testHttpFsFolder/$filename");
+	assertTrue("a file $testHttpFsFolder/$filename does not exist", sh.getRet() == 0);
+
+	// check if we can read the content of this file
         sh.exec("curl -i -L '$HTTPFS_PREFIX$testHttpFsFolder/$filename?user.name=$USERNAME&op=OPEN'");
-        assertTrue("curl command to create a file failed", sh.getRet() == 0);
-        assertValueExists(sh.getOut(), HTTPFS_SUCCESS);
+        assertTrue("curl command to create a file failed with OPEN command", sh.getRet() == 0);
         assertValueExists(sh.getOut(), filenameContent);
     }
 }
