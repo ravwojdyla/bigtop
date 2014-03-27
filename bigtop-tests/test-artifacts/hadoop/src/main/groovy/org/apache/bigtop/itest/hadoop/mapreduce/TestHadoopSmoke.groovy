@@ -51,8 +51,7 @@ class TestHadoopSmoke {
   static String nn = (defaultFs[-1] == '/' ? defaultFs[0..-2] : defaultFs)
 
   String cmd = "hadoop jar ${STREAMING_JAR}" +
-      " -D mapred.map.tasks=1 -D mapred.reduce.tasks=1" +
-      " -D mapreduce.output.fileoutputformat.compress=false -D mapred.job.name=Experiment"
+      " -D mapred.map.tasks=1 -D mapred.reduce.tasks=1 -D mapred.job.name=Experiment"
   String cmd2 = " -input ${testDir}/cachefile/input.txt -mapper map.sh -file map.sh -reducer cat" +
       " -output ${testDir}/cachefile/out -verbose"
   String arg = "${nn}/user/${System.properties['user.name']}/${testDir}/cachefile/cachedir.jar#testlink"
@@ -65,7 +64,7 @@ class TestHadoopSmoke {
 
   @AfterClass
   static void tearDown() {
-    // sh.exec("hadoop fs -rmr -skipTrash ${testDir}")
+    sh.exec("hadoop fs -rmr -skipTrash ${testDir}")
   }
 
   @Test
@@ -73,7 +72,7 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -cacheArchive ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part*00000")
+    sh.exec("hadoop fs -text ${testDir}/cachefile/out/part*00000*")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
@@ -84,9 +83,10 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
              cmd + ' -archives ' + arg + cmd2)
     logError(sh)
-    sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part*00000")
+    sh.exec("hadoop fs -text ${testDir}/cachefile/out/part*00000*")
     logError(sh)
 
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
   }
+
 }
