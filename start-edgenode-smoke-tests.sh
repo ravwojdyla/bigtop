@@ -2,7 +2,7 @@
 
 export HADOOP_CONF_DIR=/etc/hadoop/conf
 export HADOOP_HOME=/usr/lib/hadoop
-export HTTPFS_PROXY=flume-edge-collector-001.lon.spotify.net:14443
+export HTTPFS_PROXY=http://flume-edge-collector-001.lon.spotify.net:14000
 export LUIGI_CONF_DIR=/etc/luigi/
 export HIVE_HOME=/usr/lib/hive
 export HADOOP_MAPRED_HOME=/usr/lib/hadoop-mapreduce/
@@ -20,26 +20,33 @@ do
     # -------------------------
     # build a project
     # -------------------------
-    mvn3 clean install -DskipTests -DskipITs -DperformRelease -o -nsu -f ./bigtop-tests/test-artifacts/$PROJECT/pom.xml
+    BUILD=$PROJECT
+    if [ "$BUILD" == "hdfs" ] || [ "$BUILD" == "mapreduce" ] || [ "$BUILD" == "yarn" ]; then
+        BUILD=hadoop
+    fi
+    mvn3 clean install -DskipTests -DskipITs -DperformRelease -o -nsu -f ./bigtop-tests/test-artifacts/$BUILD/pom.xml
 
     # -------------------------
     # execute a project
     # -------------------------
-    EXECUTION_POM_FILE="bigtop-tests/test-execution/smokes/$PROJECT/pom.xml"
+    EXECUTION_POM_FILE="bigtop-tests/test-execution/smokes/$BUILD/pom.xml"
     LOG4J_LEVEL="org.apache.bigtop.itest.log4j.level=TRACE"
 
-    # hadoop = hdfs + mapreduce + yarn
-    if [ "$PROJECT" == "hadoop" ]; then
+    if [ "$PROJECT" == "hdfs" ]; then
+	# ------------------------
         # hdfs
+	# ------------------------
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestTextSnappy*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHDFSQuota*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestNameNodeHA*' -f $EXECUTION_POM_FILE
-        mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHDFSBalancer*' -f $EXECUTION_POM_FILE
+        # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHDFSBalancer*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestDFSAdmin*' -f $EXECUTION_POM_FILE
-        # mapreduce
+    # mapreduce
+    elif [ "$PROJECT" == "mapreduce" ]; then
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHadoopSmoke*' -f $EXECUTION_POM_FILE
         # mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestHadoopExamples*' -f $EXECUTION_POM_FILE
-        # yarn
+    # yarn
+    elif [ "$PROJECT" == "yarn" ]; then
         mvn3 clean verify -D$LOG4J_LEVEL -D'org.apache.maven-failsafe-plugin.testInclude=**/TestNode*' -f $EXECUTION_POM_FILE
     # sqoop
     elif [ "$PROJECT" == "sqoop" ]; then
@@ -49,5 +56,4 @@ do
     elif [ "$PROJECT" == "snakebite" ] || [ "$PROJECT" == "luigi" ] || [ "$PROJECT" == "httpfs" ] ; then
         mvn3 clean verify -D$LOG4J_LEVEL -f $EXECUTION_POM_FILE
     fi
-
 done
