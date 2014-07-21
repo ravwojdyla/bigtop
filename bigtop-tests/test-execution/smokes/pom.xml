@@ -52,6 +52,7 @@
     <phoenix-smoke.version>${project.version}</phoenix-smoke.version>
     <luigi-smoke.version>${project.version}</luigi-smoke.version>
     <snakebite-smoke.version>${project.version}</snakebite-smoke.version>
+    <scalding-smoke.version>${project.version}</scalding-smoke.version>
   </properties>
 
   <!--
@@ -67,6 +68,7 @@
     <module>giraph</module>
     <module>hue</module>
     <module>crunch</module>
+    <module>scalding</module>
     <!--
     <module>httpfs</module>
     <module>flume</module>
@@ -167,6 +169,7 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.bigtop.itest</groupId>
         <artifactId>luigi-smoke</artifactId>
         <version>${luigi-smoke.version}</version>
         <scope>test</scope>
@@ -175,6 +178,12 @@
         <groupId>org.apache.bigtop.itest</groupId>
         <artifactId>snakebite-smoke</artifactId>
         <version>${snakebite-smoke.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.bigtop.itest</groupId>
+        <artifactId>scalding-smoke</artifactId>
+        <version>${scalding-smoke.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

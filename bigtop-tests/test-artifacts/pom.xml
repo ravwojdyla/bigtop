@@ -53,6 +53,7 @@
     <module>phoenix</module>
     <module>luigi</module>
     <module>snakebite</module>
+    <module>scalding</module>
   </modules>
 
   <dependencies>

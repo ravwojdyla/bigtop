@@ -36,6 +36,13 @@ function prereq_for_crunch {
    rc_check
 }
 
+function prereq_for_scalding {
+   if [[ -z "$SCALDING_WORDCOUNT_JAR" ]]; then
+      echo "You have to set SCALDING_WORDCOUNT_JAR variable that points to valid wordcount jar with scalding job";
+      exit -1
+   fi
+}
+
 for PROJECT in "$@"
 do
 
@@ -78,6 +85,9 @@ do
     elif [ "$PROJECT" == "crunch" ]; then
         prereq_for_crunch
         mvn3 clean verify -DargLine="-Dorg.apache.bigtop.itest.crunch.smoke.crunch.jar=${CRUNCH_EXAMPLES_JAR}" -D$LOG4J_LEVEL -f $EXECUTION_POM_FILE
+    elif [ "$PROJECT" == "scalding" ]; then
+        prereq_for_scalding	
+        mvn3 clean verify -D$LOG4J_LEVEL -f $EXECUTION_POM_FILE
     elif [ "$PROJECT" == "snakebite" ] || [ "$PROJECT" == "luigi" ] || [ "$PROJECT" == "httpfs" ] ; then
         mvn3 clean verify -D$LOG4J_LEVEL -f $EXECUTION_POM_FILE
     fi
